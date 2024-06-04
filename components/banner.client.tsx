@@ -1,9 +1,14 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { MouseEventHandler } from "react";
 
-const Banner = () => {
-  const handleClick = () => {};
+const Banner = ({
+  handleOnClick,
+  buttonText,
+}: {
+  handleOnClick: MouseEventHandler<HTMLButtonElement> | undefined;
+  buttonText: string;
+}) => {
   return (
     <div className="mb-12 grid lg:mb-24 lg:grid-cols-2">
       <div className="z-20 flex flex-col px-2 md:pt-12">
@@ -15,7 +20,7 @@ const Banner = () => {
           Discover Your Local Coffee Shops
         </p>
         <div className="mt-12">
-          <button onClick={handleClick}>View Stores Nearby</button>
+          <button onClick={handleOnClick}>{buttonText}</button>
         </div>
       </div>
       <div className="absolute top-2 z-10 md:top-0 md:mt-12 md:pl-10 md:pt-0 lg:right-1/4 lg:flex lg:pl-20">
