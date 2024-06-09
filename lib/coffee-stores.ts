@@ -1,6 +1,23 @@
 import { MapboxType } from "@/types";
 
-const transformCoffeeData = (result: MapboxType) => {
+const getListOfCoffeeStorePhotos = async () => {
+  try {
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos/?client_id=${process.env.UNSPLASH_ACCESS_KEY}&query="coffee shop"&page=1&perPage=10&orientation=landscape`
+    );
+    const photos = await response.json();
+    const results = photos?.results || [];
+    return results?.map((result: { urls: any }) => result.urls["small"]);
+  } catch (error) {
+    console.error("Error retrieving a photo", error);
+  }
+};
+
+const transformCoffeeData = (
+  idx: number,
+  result: MapboxType,
+  photos: Array<string>
+) => {
   return {
     id: result.id,
     address: result.properties?.address || "",
@@ -10,34 +27,37 @@ const transformCoffeeData = (result: MapboxType) => {
   };
 };
 
-export const fetchCoffeeStores = async (longLat: string) => {
+export const fetchCoffeeStores = async (longLat: string, limit: number) => {
   try {
     const response = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/coffee.json?proximity=${longLat}&access_token=${process.env.MAPBOX_API}`
     );
 
     const data = await response.json();
+    const photos = await getListOfCoffeeStorePhotos();
 
-    return data.features.map((result: MapboxType) =>
-      transformCoffeeData(result)
+    return data.features.map((result: MapboxType, idx: number) =>
+      transformCoffeeData(idx, result, photos)
     );
   } catch (error) {
     console.error("Error while fetching coffee stores", error);
   }
 };
 
-export const fetchCoffeeStore = async (id: string) => {
+export const fetchCoffeeStore = async (id: string, queryId: string) => {
+  console.log("running fetch coffee store");
   try {
     const response = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${id}.json?proximity=ip&access_token=${process.env.MAPBOX_API}`
     );
     const data = await response.json();
+    const photos = await getListOfCoffeeStorePhotos();
 
-    const transformedCoffeeData = data.features.map((result: MapboxType) =>
-      transformCoffeeData(result)
-    );
+    const coffeeStore = data.features.map((result: MapboxType, idx: number) =>
+      transformCoffeeData(parseInt(queryId), result, photos)):
+    
 
-    return transformedCoffeeData.length > 0 ? transformedCoffeeData[0] : {};
+    return coffeeStore.length > 0 ? coffeeStore[0] : {};
   } catch (error) {
     console.error("Error while fetching coffee stores", error);
   }
